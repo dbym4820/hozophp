@@ -1,0 +1,23 @@
+{
+    "name": "dbym4820/hozophp",
+    "type": "library",
+    "description": "HozoPHP is a ontology data management library for treat hozo-formed ontology",
+    "homepage": "https://github.com/dbym4820/hozophp",
+    "keywords": ["hozo", "xml", "ontology"],
+    "authors": [{
+	"name": "dbym4820",
+	"email": "aburatanitomoki@gmail.com"
+    }],
+    "require": {
+	"php": ">=7.3.0",
+        "vlucas/phpdotenv": "^5.5"
+    },
+    "autoload": {
+	"psr-4": {
+	    "HozoPHP\\": [
+		"src",
+	    ]
+	},
+    },
+    "license": "MIT License"
+}
