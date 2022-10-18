@@ -1,11 +1,12 @@
 # HozoPHP：PHP用の法造オントロジーのデータ操作ライブラリ
-アップロードしたオントロジーのデータを取得するライブラリ
+アップロードした法造形式オントロジーのデータをPHPで処理するためのライブラリ．
+オントロジーの修正・ファイルの変更に柔軟に対応できるよう設計したもの．
 
 ## Installation
 ### 環境構築
 #### Composerのインストール
 - Composer公式：[https://getcomposer.org/download/](https://getcomposer.org/download/)
-- Windows：[ダウンローダ(Somposer-Setup.ext)](https://getcomposer.org/Composer-Setup.exe)からインストール
+- Windows：[ダウンローダ(Composer-Setup.ext)](https://getcomposer.org/Composer-Setup.exe)からインストール
 - macOS
 ```
 ~$ brew install composer
@@ -57,8 +58,10 @@ $ontology->treatOntology(); // オントロジーをPHPオブジェクト化
 require_once('./vendor/autoload.php'); // autoloaderの読み込み
 use HozoPHP\OntologyManager; // 名前空間の使用宣言
 $ontology = new OntologyManager("/ontology/", "20220916-sample.xml"); // 初期設定の反映とインスタンス化
-$ontology->getAllConcepts();
+$result_array = $ontology->getAllConcepts(); //処理の実行(全概念の取得)
+$ontology->showJson($result_array); // 結果のArrayをJSONとして表示
 ```
+
 詳細な使用例は，本プロジェクトの[index.php](./index.php)を参照のこと．
 
 
@@ -110,7 +113,7 @@ $result = $ontology->getPartOfConceptInfo('基本概念ID');
 $result = $ontology->getAncestorSubConcepts('基本概念ID');
 ```
 
-- ++特定のIDを持つ部分概念：++
+- ~~特定のIDを持つ部分概念~~
 
 ### インスタンス概念の取得
 - 全インスタンスの一覧
@@ -118,7 +121,7 @@ $result = $ontology->getAncestorSubConcepts('基本概念ID');
 $result = $ontology->getAllInstance()
 ```
 
-- ++特定の部分概念を持つインスタンスの一覧++
+- ~~特定の部分概念を持つインスタンスの一覧~~
 ```
 $result = $ontology->getAllInstanceWhichHasSpecificPartInput(..........)
 ```
@@ -130,7 +133,7 @@ $result = $ontology->getAllInstanceWhichHasSpecificPartInput(..........)
 $result = $ontology->getISARelationshipList();
 ```
 
-- ++その他++
+- ~~その他~~
 
 ## 概念の構造
 ### 基本概念／インスタンス概念
@@ -160,5 +163,5 @@ $result = $ontology->getISARelationshipList();
 
 ## 依存ライブラリ・対応システムなど
 - PHP（>=7.3）
-- Composer（>=2.4）
-- 法造（5.7）
+- [Composer](https://getcomposer.org/)（>=2）
+- [法造(https://hozo.jp/index_jp.html)](https://hozo.jp/index_jp.html)（5.7）
