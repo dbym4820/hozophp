@@ -1,56 +1,162 @@
 # HozoPHP：PHP用の法造オントロジーのデータ操作ライブラリ
-アップしたオントロジーのバージョン・検索条件を指定するとJSONでデータを返す用ライブラリ
+アップロードしたオントロジーのデータを取得するライブラリ
 
-## 使い方
-
+## Installation
 ### 環境構築
+#### Composerのインストール
+- Composer公式：[https://getcomposer.org/download/](https://getcomposer.org/download/)
+- Windows：[ダウンローダ(Somposer-Setup.ext)](https://getcomposer.org/Composer-Setup.exe)からインストール
+- macOS
+```
+~$ brew install composer
+```
 
-- ライブラリのインストール
+#### ライブラリのインストール
 
 ```
 ~$ composer require dbym4820/hozophp
 ```
 
-- オントロジーのアップロード・バージョン管理
+#### オントロジーのアップロード・バージョン管理
+プロジェクトの任意の場所に法造のオントロジーファイル（XML）をアップ．
 
-法造のオントロジーファイル（XML）をアップ．
-（基本は「/ontology/」ディレクトリ）
+以下では，プロジェクトが
+```
+── project-root/
+  ├── index.php
+  └── ontology/
+	  └──  20220916-sample.xml
+```
+というディレクトリ構造になっていて，index.phpの中で呼び出す前提で解説．
 
 
-### 初期化
-
-- 方法１：コンストラクタでオントロジーを設定
+### プロジェクトへの導入
+#### 方法１：コンストラクタでオントロジーを設定
 
 ```
-require_once('./vendor/autoload.php');
-use HozoPHP\OntologyManager;
-$ontology = new OntologyManager("/ontology/", "20220916-sample.xml");
+require_once('./vendor/autoload.php'); // autoloaderの読み込み
+use HozoPHP\OntologyManager; // 名前空間の使用宣言
+$ontology = new OntologyManager("/ontology/", "20220916-sample.xml"); // 初期設定の反映とインスタンス化
 ```
 
-- 方法２：個別に設定
+もちろん，useせずに， new HozoPHP\OntologyManager("/ontology/", "20220916-sample.xml") としても別にいい
+
+#### 方法２：個別に設定
 
 ```
-$ontology = new OntologyManager(); // オントロジーを初期化
+$ontology = new OntologyManager(); // インスタンス化
 $ontology->setOntologyDirectory("/ontology/"); // オントロジーのディレクトリを指定
 $ontology->setOntology("20220916-sample.xml"); // 自分のオントロジーの指定
-$ontology->treatOntology(); // オントロジーをPHPのオブジェクト化
+$ontology->treatOntology(); // オントロジーをPHPオブジェクト化
 
 ```
 
-### リクエスト方法
+### 使用例
 
 ```
-$json_val = $ontology->getAllInstance();
-$ontology->showJson($json_val);
+require_once('./vendor/autoload.php'); // autoloaderの読み込み
+use HozoPHP\OntologyManager; // 名前空間の使用宣言
+$ontology = new OntologyManager("/ontology/", "20220916-sample.xml"); // 初期設定の反映とインスタンス化
+$ontology->getAllConcepts();
+```
+詳細な使用例は，本プロジェクトの[index.php](./index.php)を参照のこと．
+
+
+## 提供メソッド一覧
+### 基本概念の取得
+- 全基本概念の一覧
+```
+$result = $ontology->getAllConcepts();
 ```
 
-
-- 全概念の一覧取得
-
+- 特定のIDを持つ基本概念
 ```
-index.php?type=get-all-concepts
+$result = $ontology->getConceptInfoFromID('基本概念ID');
 ```
 
+- 特定のラベルを持つ基本概念
+```
+$result = $ontology->getConceptInfoFromLabel('基本概念ラベル');
+```
+
+- 特定のIDのを持つ基本概念の親概念
+```
+$result = $ontology->getParentConcept('基本概念ID');
+```
+
+- 特定のIDのを持つ基本概念の子概念一覧
+```
+$result = $ontology->getChildrenConcepts('基本概念ID');
+```
+
+- 特定のIDのを持つ基本概念の祖先概念
+```
+$result = $ontology->getAncestorConcepts('基本概念ID');
+```
+
+- 特定のIDのを持つ基本概念の子孫概念一覧
+```
+$result = $ontology->getDescendantConcepts('基本概念ID');
+```
+
+### 部分概念の取得
+- 特定の基本概念に付随する部分概念・属性概念の一覧
+```
+$result = $ontology->getPartOfConceptInfo('基本概念ID');
+```
+
+- 特定の基本概念に付随する部分概念・属性概念（祖先のものも含む）一覧
+```
+$result = $ontology->getAncestorSubConcepts('基本概念ID');
+```
+
+- ++特定のIDを持つ部分概念：++
+
+### インスタンス概念の取得
+- 全インスタンスの一覧
+```
+$result = $ontology->getAllInstance()
+```
+
+- ++特定の部分概念を持つインスタンスの一覧++
+```
+$result = $ontology->getAllInstanceWhichHasSpecificPartInput(..........)
+```
+ 
+
+### 関係概念の取得
+- IS-A関係の一覧
+```
+$result = $ontology->getISARelationshipList();
+```
+
+- ++その他++
+
+## 概念の構造
+### 基本概念／インスタンス概念
+```
+[
+  'id' => '概念ID（string）',
+  'label' => '概念ラベル（string）',
+  'instantiation' => 'インスタンスか否か（string："true"か"false"）',
+  'sub_concept' => [ 
+      [
+		  'id' => '部分・属性概念のID（string）',
+		  'kind' => '部分概念か属性概念か（string："p/o"か"a/o"）,
+		  'cardinality' => '個数制約（string）',
+		  'role' => 'ロール概念名（string）',
+		  'class_constraint' => 'クラス制約概念ラベル（string）',
+		  'role_holder' => 'ロールホルダー名（string）',
+		  'value' => '値（string）',
+		  'sub_concept' => 
+			  [
+			    // ＊以下同形（部分概念の部分概念があれば）
+			  ]
+	  ]
+	  // ＊以下同形（他の部分概念があれば）
+	]
+]
+```
 
 ## 依存ライブラリ・対応システムなど
 - PHP（>=7.3）
