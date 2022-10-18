@@ -19,7 +19,7 @@
 
 ### 初期化
 
-- コンストラクタでオントロジーを設定
+- 方法１：コンストラクタでオントロジーを設定
 
 ```
 require_once('./vendor/autoload.php');
@@ -27,7 +27,7 @@ use HozoPHP\OntologyManager;
 $ontology = new OntologyManager("/ontology/", "20220916-sample.xml");
 ```
 
-- 個別に設定
+- 方法２：個別に設定
 
 ```
 $ontology = new OntologyManager(); // オントロジーを初期化
@@ -38,7 +38,6 @@ $ontology->treatOntology(); // オントロジーをPHPのオブジェクト化
 ```
 
 ### リクエスト方法
-例．http://localhost/index.php?type=get-all-concepts
 
 ```
 $json_val = $ontology->getAllInstance();
@@ -55,5 +54,5 @@ index.php?type=get-all-concepts
 
 ## 依存ライブラリ・対応システムなど
 - PHP（>=7.3）
-- Composer（2.4.2）
+- Composer（>=2.4）
 - 法造（5.7）
