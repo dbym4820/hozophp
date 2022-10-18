@@ -1,0 +1,6 @@
+Allow from All
+
+<Files ~ "\.env">
+  Deny from all
+</Files>
+
