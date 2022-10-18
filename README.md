@@ -37,7 +37,7 @@
 ```
 require_once('./vendor/autoload.php'); // autoloaderの読み込み
 use HozoPHP\OntologyManager; // 名前空間の使用宣言
-$ontology = new OntologyManager("/ontology/", "20220916-sample.xml"); // 初期設定の反映とインスタンス化
+$ontology = new OntologyManager(__DIR__."/ontology/", "20220916-sample.xml"); // 初期設定の反映とインスタンス化
 ```
 
 もちろん，useせずに， new HozoPHP\OntologyManager("/ontology/", "20220916-sample.xml") としても別にいい
@@ -46,7 +46,7 @@ $ontology = new OntologyManager("/ontology/", "20220916-sample.xml"); // 初期�
 
 ```
 $ontology = new OntologyManager(); // インスタンス化
-$ontology->setOntologyDirectory("/ontology/"); // オントロジーのディレクトリを指定
+$ontology->setOntologyDirectory(__DIR__."/ontology/"); // オントロジーのディレクトリを指定
 $ontology->setOntology("20220916-sample.xml"); // 自分のオントロジーの指定
 $ontology->treatOntology(); // オントロジーをPHPオブジェクト化
 
@@ -57,7 +57,7 @@ $ontology->treatOntology(); // オントロジーをPHPオブジェクト化
 ```
 require_once('./vendor/autoload.php'); // autoloaderの読み込み
 use HozoPHP\OntologyManager; // 名前空間の使用宣言
-$ontology = new OntologyManager("/ontology/", "20220916-sample.xml"); // 初期設定の反映とインスタンス化
+$ontology = new OntologyManager(__DIR__."/ontology/", "20220916-sample.xml"); // 初期設定の反映とインスタンス化
 $result_array = $ontology->getAllConcepts(); //処理の実行(全概念の取得)
 $ontology->showJson($result_array); // 結果のArrayをJSONとして表示
 ```
