@@ -5,7 +5,9 @@ class OntologyManager {
     private $ontology_filename;
     private $ontology_directory;
     private $ontology_path;
+    private $current_ontology_object_plain;
     private $current_ontology_object;
+    private $current_ontology_isa_object;
     
     public function __construct() {
 	// 引数の数でコンストラクタ多態性
@@ -47,7 +49,9 @@ class OntologyManager {
     }
 
     public function treatOntology() {
-	$this->current_ontology_object = simplexml_load_file($this->ontology_path);
+	$this->current_ontology_object_plain = simplexml_load_file($this->ontology_path);
+	$this->current_ontology_object = $this->extractConcepts($this->current_ontology_object_plain->xpath("W_CONCEPTS/CONCEPT"));
+	$this->current_ontology_isa_object = $this->extractISARelationConcept($this->current_ontology_object_plain->xpath("W_CONCEPTS/ISA")); 
     }
     
     /*** ユーティリティ  ***/
@@ -76,17 +80,17 @@ class OntologyManager {
     
     /*** オントロジーの検索など  ***/
     /***** 基本概念の処理 *****/
-    public function getAllConcepts() {
-	$concept_info =  $this->current_ontology_object->xpath("W_CONCEPTS/CONCEPT");
-	$concept_count = count($concept_info);
+    private function extractConcepts($plain_ontology_object) {
+	$concept_count = count($plain_ontology_object);
 	$concept_list = array();
-	//return $concept_info;
+	//return $$plain_ontology_object;
 	for($i=0; $i<$concept_count; $i++) {
-	    $c = $concept_info[$i];
+	    $c = $plain_ontology_object[$i];
 	    array_push($concept_list, array(
 		"id" => (string)$c->attributes()->id,
 		"label" => (string)$c->LABEL,
-		"parts" => $this->extractSubSlotsFromPlainConceptInfo($c)
+		"instantiation" => (string)$c->attributes()->instantiation,
+		"sub_concept" => $this->extractSubSlotsFromPlainConceptInfo($c)
 	    ));
 	}
 	return $concept_list;
@@ -116,10 +120,26 @@ class OntologyManager {
 	}
 	return $parts_list;	    
     }
+
+    private function extractISARelationConcept($plain_isa_relation) {
+	// ISAリンクを元オブジェクトから取り出す
+	$shaped_isa_relation = array_map(function($isa) {
+	    return array(
+		"parent" => $this->getConceptInfoFromLabel($isa->attributes()->parent)['id'],
+		"child" => $this->getConceptInfoFromLabel((string)$isa->attributes()->child)['id']
+	    );
+	}, $plain_isa_relation);
+	return $shaped_isa_relation;
+
+    }
+
+
+
+    /** ここから消す **/
     
     public function getConceptPlainInfoFromID($basic_concept_id) {
 	// オントロジーの概念IDからその基本概念の情報を取得する(プレーンなXMLの変換そのまま)
-	$concept_info =  $this->current_ontology_object->xpath("W_CONCEPTS/CONCEPT[@id='$basic_concept_id']")[0];
+	$concept_info =  array_search($basic_concept_id, array_column($this->current_ontology_object, 'id'));
 	return $concept_info;
     }
 
@@ -129,26 +149,24 @@ class OntologyManager {
 	return $concept_info;
     }
 
+    /** ここまで消す **/
 
+    /***** 基本概念の検索 *****/
+    public function getAllConcepts() {
+	// 全基本概念の一覧
+	return $this->current_ontology_object;
+    }
+    
     public function getConceptInfoFromID($basic_concept_id) {
-	// オントロジーの概念IDからその基本概念の情報を取得する（オリジナル整形）
-	$plain_concept =  $this->current_ontology_object->xpath("W_CONCEPTS/CONCEPT[@id='$basic_concept_id']")[0];
-	$concept_info = array(
-	    "id" => (string)$plain_concept->attributes()->id,
-	    "label" => (string)$plain_concept->LABEL
-	);
-
-	return $concept_info;
+	// オントロジーの概念IDからその基本概念の情報を取得する
+	$target_concept_key =  array_search($basic_concept_id, array_column($this->current_ontology_object, "id"));
+	return $target_concept_key !== false ? $this->current_ontology_object[$target_concept_key] : [];
     }
 
     public function getConceptInfoFromLabel($basic_concept_label) {
-	// オントロジーの概念IDからその基本概念の情報を取得する（オリジナル整形）
-	$plain_concept =  $this->current_ontology_object->xpath("W_CONCEPTS/CONCEPT[LABEL='$basic_concept_label']")[0];
-	$concept_info = array(
-	    "id" => (string)$plain_concept->attributes()->id,
-	    "label" => (string)$plain_concept->LABEL
-	);
-	return $concept_info;
+	// オントロジーの概念IDからその基本概念の情報を取得する
+	$target_concept_key =  array_search($basic_concept_label, array_column($this->current_ontology_object, "label"));
+	return $target_concept_key !== false ? $this->current_ontology_object[$target_concept_key] : [];
     }
 
     
@@ -156,51 +174,38 @@ class OntologyManager {
     /***** 部分概念の処理 *****/
     public function getPartOfConceptInfo($basic_concept_id) {
 	// 部分概念の情報一覧を取得
-	$part_concept_attributes = $this->getConceptPlainInfoFromID($basic_concept_id)->SLOTS;
-	if(count($part_concept_attributes) === 0) {
-	    return array();
-	}
-	$parts = $part_concept_attributes->SLOT;
-	$parts_count = count($parts);
-	$parts_list = array();
-
-	for($i=0; $i<$parts_count; $i++) {
-	    $part = $parts[$i]->attributes();
-	    array_push($parts_list, array(
-		"id" => (string)$part->id,
-		"kind" => (string)$part->kind,
-		"cardinality" => (string)$part->num,
-		"role" => (string)$part->role,
-		"class_constraint" => (string)$part->class_constraint,
-		"role_holder" => (string)$part->rh_name,
-		"value" => (string)$part->value,
-	    ));
-	}
-	return $parts_list;
+	$target_concept = $this->getConceptInfoFromID($basic_concept_id);
+	return $target_concept !== [] ? $target_concept['sub_concept'] : [];	
     }
-    
 
+    public function getAncestorSubConcepts($basic_concept_id) {
+	// 祖先概念にある部分概念・属性概念をすべて取得
+	$param_list = [];
+	$ancestors = $this->getAncestorConcepts($basic_concept_id);
+	foreach($ancestors as $concept) {
+	    $c = $this->getPartOfConceptInfo($concept);
+	    if($c !== []) {
+		array_map(function($sub) use (&$param_list) {
+		    array_push($param_list, $sub);
+		}, $c);
+	    }
+	}
+	return array_merge($this->getPartOfConceptInfo($basic_concept_id), $param_list);
+    }
 
     /***** IS-A階層の処理 *****/
     public function getISARelationshipList() {
 	// IS-A関係にあるものをすべて取得
-	$isa_relation =  $this->current_ontology_object->xpath("W_CONCEPTS/ISA");
-	$shaped_isa_relation = array_map(function($isa) {
-	    return array(
-		"parent" => $this->getConceptIDFromLabel((string)$isa->attributes()->parent),
-		"child" => $this->getConceptIDFromLabel((string)$isa->attributes()->child)
-	    );
-	}, $isa_relation);
-	return $shaped_isa_relation;
+	return $this->current_ontology_isa_object;
     }
 
 
     public function getChildrenConcepts($basic_concept_id) {
 	// 特定の基本概念の子概念情報一覧を取得(配列で返す)
-	$isa_relation_list = $this->getISARelationshipList();
-	$candidate_list = array_filter($isa_relation_list, function($relation) use ($basic_concept_id) {
-	    return $basic_concept_id === $relation["parent"];
-	});
+	$candidate_list = array_filter($this->current_ontology_isa_object,
+				       function($relation) use ($basic_concept_id) {
+					   return $basic_concept_id === $relation["parent"];
+				       });
 	return array_values(array_map(function($relation) {
 	    return (string)$relation["child"];
 	}, $candidate_list));
@@ -208,11 +213,12 @@ class OntologyManager {
 
     public function getParentConcept($basic_concept_id) {
 	// 特定の基本概念の親概念を取得
-	$isa_relation_list = $this->getISARelationshipList();
-	$candidate_list = array_filter($isa_relation_list, function($relation) use ($basic_concept_id) {
-	    return $basic_concept_id === $relation["child"];
-	});
-	$return_val = count($candidate_list) !== 0 ? array(array_values($candidate_list)[0]["parent"]) : array();
+	$candidate_list = array_filter($this->current_ontology_isa_object,
+				       function($relation) use ($basic_concept_id) {
+					   return $basic_concept_id === $relation["child"];
+				       });
+	$return_val = count($candidate_list) !== 0 ?
+		      array(array_values($candidate_list)[0]["parent"]) : [];
 	return $return_val;
     }
 
@@ -224,64 +230,39 @@ class OntologyManager {
 
     public function getAncestorConcepts($basic_concept_id) {
 	// 先祖に当たる基本概念をすべて取得
-	$isa_relation_list = $this->getISARelationshipList();
-	$ancestors = array();
-	$target_concept_id = $basic_concept_id;
-	while(true) {
-	    $candidate_list = array_filter($isa_relation_list, function($relation) use ($target_concept_id) {
-		return $target_concept_id === $relation["child"];
-	    });
-	    $target_concept_id = count($candidate_list) !== 0 ? array_values($candidate_list)[0]["parent"] : null;
-	    if($target_concept_id === null) {
-		break;
-	    }
-	    array_push($ancestors, $target_concept_id);
-	}
-	return $ancestors;
+	$self = $this;
+	$rec = function ($target_concept, $arr) use ($self, &$rec) {
+	    $parent_concept = $self->getParentConcept($target_concept);
+	    return $parent_concept === [] ?
+		   $arr : $rec($parent_concept[0], array_merge($arr, $parent_concept));
+		   
+	};	
+	return $rec($basic_concept_id, array());
     }
 
     public function getDescendantConcepts($basic_concept_id) {
 	// 子孫に当たる基本概念をすべて取得
-	$isa_relation_list = $this->getISARelationshipList();
-	$descendants = array();
-
-	$target_concepts = array($basic_concept_id);
-	while(true) {
-	    $children_list = array_map(function ($concept_id) use ($isa_relation_list) {
-		$cand = array_filter($isa_relation_list, function($relation) use ($concept_id) {
-		    return $concept_id === $relation["parent"];
-		});
-		return count($cand) !== 0 ? array_values(array_map(function ($d) {
-		    return $d["child"];
-		}, $cand)) : null;
-	    }, $target_concepts);
-	    
-	    $children = $this->flatten($children_list);
-	    if($children[0] === null) {
-		break;
-	    }
-	    array_push($descendants, $children);
-	    $target_concepts = $children;
-	}
-	return array_values(array_filter($this->flatten($descendants)));
+	$self = $this;
+	$rec = function ($target_concept) use ($self, &$rec) {
+	    $child_concepts = $self->getChildrenConcepts($target_concept);
+	    return $child_concepts === [] ?
+		   [] :
+		   array_map(function ($concept_id) use ($self, &$rec) {
+		       return array_merge([$concept_id], $rec($concept_id));
+		   }, $child_concepts);
+	};
+	return $this->flatten($rec($basic_concept_id));
     }
 
 
 
-    /***** 問いの扱い *****/
+    /***** インスタンスの扱い *****/
     public function getAllInstance() {
 	// ドメイン固有の問いオントロジーからインスタンスノードを抽出する
-	$concept_list =  $this->current_ontology_object->xpath("W_CONCEPTS/CONCEPT[@instantiation='true']");
-	$shaped_concept_list = array();
-	foreach($concept_list as $concept) {
-	    array_push($shaped_concept_list, array(
-		"concept_id" => (string)$concept->attributes()->id,
-		"label" => (string)$concept->LABEL
-	    ));
-	}
-	return $shaped_concept_list;
+	return array_values(array_filter($this->current_ontology_object, function($concept) {
+	    return $concept["instantiation"] === "true";
+	}));
     }
-
     
     public function getAllInstanceWhichHasSpecificPartInput($basic_concept_id) {
 	// あるインスタンス概念に対して，特定の部分概念を持つインスタンスを抽出する
