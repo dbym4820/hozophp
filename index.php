@@ -33,9 +33,11 @@ foreach($parameter_type_list as $param) {
 /***** リクエストの分岐処理  *****/
 
 $json_value;
+$is_error = false;
+
 switch($parameter_list['type']) {
     case 'get-all-concepts':
-	// すべてのインスタンス一覧を取得
+	// すべての基本概念の一覧を取得
 	$json_value = $ontology->getAllConcepts();
 	break;
     case 'get-all-instance':
@@ -60,7 +62,7 @@ switch($parameter_list['type']) {
 	break;
     case 'get-isa-relation':
 	// IS-A関係をすべて取得
-	$json_value = $ontology->getISARelationshipList($parameter_list['concept-label']);
+	$json_value = $ontology->getISARelationshipList();
 	break;
     case 'get-child-concepts':
 	// オントロジー内の基本概念について，特定の基本概念の子概念を取得
@@ -78,10 +80,20 @@ switch($parameter_list['type']) {
 	// オントロジー内の基本概念について，特定の基本概念の子孫概念を取得
 	$json_value = $ontology->getDescendantConcepts($parameter_list['concept-id']);
 	break;	
+    case 'get-sub-concepts-include-ancestors':
+	// オントロジー内の基本概念について，特定の基本概念について，先祖要素が持つ部分概念をすべて取得
+	$json_value = $ontology->getAncestorSubConcepts($parameter_list['concept-id']);
+	break;
     default:
 	$json_value = array();
+	$is_error = true;
 	break;
 }
 
 // 出力
+/* $ontology->showJson(array(
+ *     "request_result" => !$is_error ? "success" : "success",
+ *     "result_body" => $json_value
+ * )); */
 $ontology->showJson($json_value);
+/* print_r($json_value); */
