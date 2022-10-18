@@ -1,7 +1,7 @@
 <?php
 // 基本ページ
 require_once(realpath(dirname(__FILE__)) . '/vendor/autoload.php');
-require_once(realpath(dirname(__FILE__)) . "/src/OntologyManager.class.php");
+require_once(realpath(dirname(__FILE__)) . "/src/OntologyManager.php");
 Dotenv\Dotenv::createImmutable(realpath(dirname(__FILE__)))->load();
 
 use HozoPHP\OntologyManager;
@@ -34,6 +34,10 @@ foreach($parameter_type_list as $param) {
 
 $json_value;
 switch($parameter_list['type']) {
+    case 'get-all-concepts':
+	// すべてのインスタンス一覧を取得
+	$json_value = $ontology->getAllConcepts();
+	break;
     case 'get-all-instance':
 	// すべてのインスタンス一覧を取得
 	$json_value = $ontology->getAllInstance();

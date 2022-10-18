@@ -76,28 +76,79 @@ class OntologyManager {
     
     /*** オントロジーの検索など  ***/
     /***** 基本概念の処理 *****/
-    public function getConceptInfoFromID($basic_concept_id) {
-	// オントロジーの概念IDからその基本概念の情報を取得する
+    public function getAllConcepts() {
+	$concept_info =  $this->current_ontology_object->xpath("W_CONCEPTS/CONCEPT");
+	$concept_count = count($concept_info);
+	$concept_list = array();
+	//return $concept_info;
+	for($i=0; $i<$concept_count; $i++) {
+	    $c = $concept_info[$i];
+	    array_push($concept_list, array(
+		"id" => (string)$c->attributes()->id,
+		"label" => (string)$c->LABEL,
+		"parts" => $this->extractSubSlotsFromPlainConceptInfo($c)
+	    ));
+	}
+	return $concept_list;
+    }
+    
+    private function extractSubSlotsFromPlainConceptInfo($plain_concept_info) {
+	// 概念定義の塊からPart-of/Attribute-ofを取り出して変形
+	if(count($plain_concept_info->SLOTS) === 0) {
+	    return array();
+	}
+	$parts = $plain_concept_info->SLOTS->SLOT;
+	$parts_count = count($parts);
+	$parts_list = array();
+
+	for($i=0; $i<$parts_count; $i++) {
+	    $part = $parts[$i]->attributes();
+	    array_push($parts_list, array(
+		"id" => (string)$part->id,
+		"kind" => (string)$part->kind,
+		"cardinality" => (string)$part->num,
+		"role" => (string)$part->role,
+		"class_constraint" => (string)$part->class_constraint,
+		"role_holder" => (string)$part->rh_name,
+		"value" => (string)$part->value,
+		"sub_concept" => $this->extractSubSlotsFromPlainConceptInfo($parts[$i])
+	    ));
+	}
+	return $parts_list;	    
+    }
+    
+    public function getConceptPlainInfoFromID($basic_concept_id) {
+	// オントロジーの概念IDからその基本概念の情報を取得する(プレーンなXMLの変換そのまま)
 	$concept_info =  $this->current_ontology_object->xpath("W_CONCEPTS/CONCEPT[@id='$basic_concept_id']")[0];
 	return $concept_info;
     }
 
-    public function getConceptInfoFromLabel($basic_concept_label) {
-	// オントロジーの概念IDからその基本概念の情報を取得する
+    public function getConceptPlainInfoFromLabel($basic_concept_label) {
+	// オントロジーの概念IDからその基本概念の情報を取得する(プレーンなXMLの変換そのまま)
 	$concept_info =  $this->current_ontology_object->xpath("W_CONCEPTS/CONCEPT[LABEL='$basic_concept_label']");
 	return $concept_info;
     }
 
-    public function getConceptIDFromLabel($basic_concept_label) {
-	// オントロジーの概念ラベルからそのIDを取得する
-	$concept_info =  $this->current_ontology_object->xpath("W_CONCEPTS/CONCEPT[LABEL='$basic_concept_label']");
-	return (string)$concept_info[0]->attributes()->id;
+
+    public function getConceptInfoFromID($basic_concept_id) {
+	// オントロジーの概念IDからその基本概念の情報を取得する（オリジナル整形）
+	$plain_concept =  $this->current_ontology_object->xpath("W_CONCEPTS/CONCEPT[@id='$basic_concept_id']")[0];
+	$concept_info = array(
+	    "id" => (string)$plain_concept->attributes()->id,
+	    "label" => (string)$plain_concept->LABEL
+	);
+
+	return $concept_info;
     }
-    
-    public function getConceptLabelFromID($basic_concept_id) {
-	// 基本概念IDからラベル情報を取得
-	$concept_info_array = $this->getConceptInfoFromID($basic_concept_id);
-	return (string)$concept_info_array[0]->LABEL;
+
+    public function getConceptInfoFromLabel($basic_concept_label) {
+	// オントロジーの概念IDからその基本概念の情報を取得する（オリジナル整形）
+	$plain_concept =  $this->current_ontology_object->xpath("W_CONCEPTS/CONCEPT[LABEL='$basic_concept_label']")[0];
+	$concept_info = array(
+	    "id" => (string)$plain_concept->attributes()->id,
+	    "label" => (string)$plain_concept->LABEL
+	);
+	return $concept_info;
     }
 
     
@@ -105,7 +156,7 @@ class OntologyManager {
     /***** 部分概念の処理 *****/
     public function getPartOfConceptInfo($basic_concept_id) {
 	// 部分概念の情報一覧を取得
-	$part_concept_attributes = $this->getConceptInfoFromID($basic_concept_id)->SLOTS;
+	$part_concept_attributes = $this->getConceptPlainInfoFromID($basic_concept_id)->SLOTS;
 	if(count($part_concept_attributes) === 0) {
 	    return array();
 	}
@@ -242,8 +293,8 @@ class OntologyManager {
 	);
 	return array_map(function ($rq){
 	    return array(
-		"concept_id" => (string)$this->getConceptInfoFromID($rq)->attributes()->id,
-		"label" => (string)$this->getConceptInfoFromID($rq)->LABEL
+		"concept_id" => (string)$this->getConceptPlainInfoFromID($rq)->attributes()->id,
+		"label" => (string)$this->getConceptPlainInfoFromID($rq)->LABEL
 	    );
 	}, $require_question_id_list);
     }
