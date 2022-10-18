@@ -53,6 +53,7 @@ index.php?type=get-all-concepts
 ```
 
 
-## 依存ライブラリ
-
-- Composer
+## 依存ライブラリ・対応システムなど
+- PHP（>=7.3）
+- Composer（2.4.2）
+- 法造（5.7）
