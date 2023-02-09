@@ -81,6 +81,10 @@ class OntologyManager {
         return $this->ontology_path;
     }
 
+    public function getOntologyString() {
+        return $this->ontology_string;
+    }
+
     public function getOntologyObject() {
         return $this->current_ontology_object;
     }
@@ -95,10 +99,11 @@ class OntologyManager {
 
     public function showXMLFile() {
         // コンバートしたファイルをXMLとして表示
-        $data = file_get_contents($ontology->ontology_path);
+        //$data = file_get_contents();
         header("Access-Control-Allow-Origin: *");
         header("Content-Type: application/xml; charset=utf-8");
-        echo $data;
+        //echo $data;
+        readfile($this->getOntologyFilePath());
         return;
     }
 
@@ -106,7 +111,7 @@ class OntologyManager {
         // コンバートした文字列をXMLとして表示
         header("Access-Control-Allow-Origin: *");
         header("Content-Type: application/xml; charset=utf-8");
-        echo $ontology->ontology_string;
+        echo $this->getOntologyString();
         return;
     }
 
@@ -319,8 +324,6 @@ class OntologyManager {
             );
         }, $require_question_id_list);
     }
-
-
     
 }
 

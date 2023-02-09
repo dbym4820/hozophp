@@ -39,11 +39,11 @@ $display_data_type = "json";
 switch($parameter_list['type']) {
     case 'xml-file':
         // 元のXMLファイルを表示
-        $display_data_type = 'xml_file';
+        $display_data_type = 'xml-file';
         break;
     case 'xml-text':
         // XMLテキストを表示
-        $display_data_type = 'xml_text';
+        $display_data_type = 'xml-text';
         break;
     case 'get-all-concepts':
 	    // すべての基本概念の一覧を取得
@@ -106,9 +106,9 @@ switch($parameter_list['type']) {
  * )); */
 if($display_data_type === 'json') {
     $ontology->showJson($json_value);
-} else if($display_data_type === 'xml_file') {
+} else if($display_data_type === 'xml-file') {
     $ontology->showXMLFile();
-} else if($display_data_type === 'xml_text') {
+} else if($display_data_type === 'xml-text') {
     $ontology->showXMLString();
 } else {
     $ontology->showJson($json_value);
