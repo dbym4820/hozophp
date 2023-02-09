@@ -8,7 +8,9 @@ class OntologyManager {
     private $current_ontology_object_plain; // オントロジーのXMLテキストをパースしたままのもの
     private $current_ontology_object; // 基本概念を抽出したもの
     private $current_ontology_isa_object; // ISAリンクを抽出したもの
-    private $remote_ontology_url;
+
+    private $ontology_string; // 文字列指定したオントロジーXMLテキスト
+    private $remote_ontology_url; // リモートのオントロジーのURL
     
     
     public function __construct() {
@@ -70,8 +72,8 @@ class OntologyManager {
         // Webを通じたオントロジーXMLデータのパース
         $$this->remote_ontology_url = $target_url; // URLの保存
         
-        $target_string = file_get_contents($target_url);
-        $this->treatOntologyString($target_string);
+        $ontology->ontology_string = file_get_contents($target_url);
+        $this->treatOntologyString($ontology->ontology_string);
     }
     
     /*** ユーティリティ  ***/
@@ -88,6 +90,23 @@ class OntologyManager {
         header("Access-Control-Allow-Origin: *");
         header("Content-Type: application/json; charset=utf-8");
         echo json_encode($data);
+        return;
+    }
+
+    public function showXMLFile() {
+        // コンバートしたファイルをXMLとして表示
+        $data = file_get_contents($ontology->ontology_path);
+        header("Access-Control-Allow-Origin: *");
+        header("Content-Type: application/xml; charset=utf-8");
+        echo $data;
+        return;
+    }
+
+    public function showXMLString() {
+        // コンバートした文字列をXMLとして表示
+        header("Access-Control-Allow-Origin: *");
+        header("Content-Type: application/xml; charset=utf-8");
+        echo $ontology->ontology_string;
         return;
     }
 

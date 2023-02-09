@@ -25,7 +25,7 @@ $parameter_type_list = array(
 foreach($parameter_type_list as $param) {
     // Getパラメータを変数化
     $parameter_list = array_merge($parameter_list, array(
-	$param => !empty($_GET[$param]) ? $_GET[$param] : null
+        $param => !empty($_GET[$param]) ? $_GET[$param] : null
     ));
 }
 
@@ -34,60 +34,67 @@ foreach($parameter_type_list as $param) {
 
 $json_value;
 $is_error = false;
+$display_data_type = "json";
 
 switch($parameter_list['type']) {
+    case 'xml-file':
+        // 元のXMLファイルを表示
+        $display_data_type = 'xml_file';
+    case 'xml-text':
+        // XMLテキストを表示
+        $display_data_type = 'xml_text';
     case 'get-all-concepts':
-	// すべての基本概念の一覧を取得
-	$json_value = $ontology->getAllConcepts();
-	break;
+	    // すべての基本概念の一覧を取得
+	    $json_value = $ontology->getAllConcepts();
+	    break;
     case 'get-all-instance':
-	// すべてのインスタンス一覧を取得
-	$json_value = $ontology->getAllInstance();
-	break;
+	    // すべてのインスタンス一覧を取得
+	    $json_value = $ontology->getAllInstance();
+	    break;
     case 'get-all-instance-which-has-subactivity':
-	// 特定の部分概念を持つインスタンス概念を取得
-	$json_value = $ontology->getAllInstanceWhichHasSpecificPartInput($parameter_list['concept-id']);
-	break;
+	    // 特定の部分概念を持つインスタンス概念を取得
+	    $json_value = $ontology->getAllInstanceWhichHasSpecificPartInput($parameter_list['concept-id']);
+	    break;
     case 'get-concept-from-id':
-	// IDから概念情報を取得
-	$json_value = $ontology->getConceptInfoFromID($parameter_list['concept-id']);
-	break;
+	    // IDから概念情報を取得
+	    $json_value = $ontology->getConceptInfoFromID($parameter_list['concept-id']);
+	    break;
     case 'get-concept-from-label':
-	// ラベルから概念情報を取得
-	$json_value = $ontology->getConceptInfoFromLabel($parameter_list['concept-label']);
-	break;
+	    // ラベルから概念情報を取得
+	    $json_value = $ontology->getConceptInfoFromLabel($parameter_list['concept-label']);
+	    break;
     case 'get-part-from-id':
-	// 基本概念IDから，そこに付随する部分概念を取得
-	$json_value = $ontology->getPartOfConceptInfo($parameter_list['concept-id']);
-	break;
+	    // 基本概念IDから，そこに付随する部分概念を取得
+	    $json_value = $ontology->getPartOfConceptInfo($parameter_list['concept-id']);
+	    break;
     case 'get-isa-relation':
-	// IS-A関係をすべて取得
-	$json_value = $ontology->getISARelationshipList();
-	break;
+	    // IS-A関係をすべて取得
+	    $json_value = $ontology->getISARelationshipList();
+	    break;
     case 'get-child-concepts':
-	// オントロジー内の基本概念について，特定の基本概念の子概念を取得
-	$json_value = $ontology->getChildrenConcepts($parameter_list['concept-id']);
-	break;
+	    // オントロジー内の基本概念について，特定の基本概念の子概念を取得
+	    $json_value = $ontology->getChildrenConcepts($parameter_list['concept-id']);
+	    break;
     case 'get-parent-concept':
-	// オントロジー内の基本概念について，特定の基本概念の親概念を取得
-	$json_value = $ontology->getParentConcept($parameter_list['concept-id']);
-	break;
+	    // オントロジー内の基本概念について，特定の基本概念の親概念を取得
+	    $json_value = $ontology->getParentConcept($parameter_list['concept-id']);
+	    break;
     case 'get-ancestor-concepts':
-	// オントロジー内の基本概念について，特定の基本概念の先祖概念を取得
-	$json_value = $ontology->getAncestorConcepts($parameter_list['concept-id']);
-	break;
+	    // オントロジー内の基本概念について，特定の基本概念の先祖概念を取得
+	    $json_value = $ontology->getAncestorConcepts($parameter_list['concept-id']);
+	    break;
     case 'get-descendant-concepts':
-	// オントロジー内の基本概念について，特定の基本概念の子孫概念を取得
-	$json_value = $ontology->getDescendantConcepts($parameter_list['concept-id']);
-	break;	
+	    // オントロジー内の基本概念について，特定の基本概念の子孫概念を取得
+	    $json_value = $ontology->getDescendantConcepts($parameter_list['concept-id']);
+	    break;	
     case 'get-sub-concepts-include-ancestors':
-	// オントロジー内の基本概念について，特定の基本概念について，先祖要素が持つ部分概念をすべて取得
-	$json_value = $ontology->getAncestorSubConcepts($parameter_list['concept-id']);
-	break;
+	    // オントロジー内の基本概念について，特定の基本概念について，先祖要素が持つ部分概念をすべて取得
+	    $json_value = $ontology->getAncestorSubConcepts($parameter_list['concept-id']);
+	    break;
     default:
-	$json_value = array();
-	$is_error = true;
-	break;
+	    $json_value = array();
+	    $is_error = true;
+	    break;
 }
 
 // 出力
@@ -95,5 +102,11 @@ switch($parameter_list['type']) {
  *     "request_result" => !$is_error ? "success" : "success",
  *     "result_body" => $json_value
  * )); */
-$ontology->showJson($json_value);
+if($display_data_type === 'json') {
+    $ontology->showJson($json_value);
+} else if($display_data_type === 'xml_file') {
+    $ontology->showXMLFile();
+} else if($display_data_type === 'xml_text') {
+    $ontology->showXMLString();
+}
 /* print_r($json_value); */

@@ -37,6 +37,7 @@
 ```
 require_once('./vendor/autoload.php'); // autoloaderの読み込み
 use HozoPHP\OntologyManager; // 名前空間の使用宣言
+
 $ontology = new OntologyManager(__DIR__."/ontology/", "20220916-sample.xml"); // 初期設定の反映とインスタンス化
 ```
 
@@ -45,12 +46,39 @@ $ontology = new OntologyManager(__DIR__."/ontology/", "20220916-sample.xml"); //
 #### 方法２：個別に設定
 
 ```
+require_once('./vendor/autoload.php'); // autoloaderの読み込み
+use HozoPHP\OntologyManager; // 名前空間の使用宣言
+
 $ontology = new OntologyManager(); // インスタンス化
 $ontology->setOntologyDirectory(__DIR__."/ontology/"); // オントロジーのディレクトリを指定
 $ontology->setOntology("20220916-sample.xml"); // 自分のオントロジーの指定
 $ontology->treatOntology(); // オントロジーをPHPオブジェクト化
 
 ```
+
+#### 方法３：オントロジーのXML文字列を渡してパージング
+
+```
+require_once('./vendor/autoload.php'); // autoloaderの読み込み
+use HozoPHP\OntologyManager; // 名前空間の使用宣言
+
+$ontology = new OntologyManager(); // インスタンス化
+$ontology->treatOntologyString("オントロジーのXML文字列"); // 文字列を入力してオントロジーを変換
+```
+
+#### 方法４：URLを指定してオントロジーのXML文字列を取得してパージング
+
+```
+require_once('./vendor/autoload.php'); // autoloaderの読み込み
+use HozoPHP\OntologyManager; // 名前空間の使用宣言
+
+$ontology = new OntologyManager(); // インスタンス化
+$ontology->treatRemoteOntologyString("https://"); // 文字列を入力してオントロジーを変換(外部のサーバーを参照)
+
+$ontology->treatRemoteOntologyString("./"); // 文字列を入力してオントロジーを変換(自分のプロジェクトでホストしているサーバーを参照)
+```
+
+
 
 ### 使用例
 
@@ -66,6 +94,23 @@ $ontology->showJson($result_array); // 結果のArrayをJSONとして表示
 
 
 ## 提供メソッド一覧
+### ユーティリティ
+#### 表示ユーティリティ
+- XMLファイルをテキストとして表示（ファイルをコンバートしている場合）
+```
+$ontology->showXMLFile();
+```
+
+- XMLファイルをテキストとして表示(treatOntologyStringかtreatRemoteOntologyStringを使用して文字列をコンバートしている場合)
+```
+$ontology->showXMLString();
+```
+
+- XMLを変換したJSONオブジェクトを表示
+```
+$ontology->showJson();
+```
+
 ### 基本概念の取得
 - 全基本概念の一覧
 ```
