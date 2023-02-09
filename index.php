@@ -33,7 +33,6 @@ foreach($parameter_type_list as $param) {
 /***** リクエストの分岐処理  *****/
 
 $json_value;
-$is_error = false;
 $display_data_type = "json";
 
 switch($parameter_list['type']) {
@@ -95,7 +94,7 @@ switch($parameter_list['type']) {
         break;
     default:
         $json_value = array();
-	    $is_error = true;
+	    $display_data_type = 'error';
         break;
 }
 
@@ -110,6 +109,14 @@ if($display_data_type === 'json') {
     $ontology->showXMLFile();
 } else if($display_data_type === 'xml-text') {
     $ontology->showXMLString();
+} else if($display_data_type === 'error') {
+    echo "<html lang='ja'><body><h1>基本概念一覧</h1>"; 
+    array_map(function($d) {
+        $id = $d['id'];
+        $label = $d['label'];
+        echo "<a href='./?type=get-concept-from-id&concept-id=${id}'>{$label}</a><br/>";
+    }, $ontology->getAllConcepts());
+    echo "</body></html>";
 } else {
     $ontology->showJson($json_value);
 }
