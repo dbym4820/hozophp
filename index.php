@@ -40,9 +40,11 @@ switch($parameter_list['type']) {
     case 'xml-file':
         // 元のXMLファイルを表示
         $display_data_type = 'xml_file';
+        break;
     case 'xml-text':
         // XMLテキストを表示
         $display_data_type = 'xml_text';
+        break;
     case 'get-all-concepts':
 	    // すべての基本概念の一覧を取得
 	    $json_value = $ontology->getAllConcepts();
@@ -108,5 +110,7 @@ if($display_data_type === 'json') {
     $ontology->showXMLFile();
 } else if($display_data_type === 'xml_text') {
     $ontology->showXMLString();
+} else {
+    $ontology->showJson($json_value);
 }
 /* print_r($json_value); */
