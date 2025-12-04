@@ -70,10 +70,10 @@ class OntologyManager {
 
     public function treatRemoteOntologyString($target_url) {
         // Webを通じたオントロジーXMLデータのパース
-        $$this->remote_ontology_url = $target_url; // URLの保存
-        
-        $ontology->ontology_string = file_get_contents($target_url);
-        $this->treatOntologyString($ontology->ontology_string);
+        $this->remote_ontology_url = $target_url; // URLの保存
+
+        $this->ontology_string = file_get_contents($target_url);
+        $this->treatOntologyString($this->ontology_string);
     }
     
     /*** ユーティリティ  ***/

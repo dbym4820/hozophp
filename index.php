@@ -32,7 +32,7 @@ foreach($parameter_type_list as $param) {
 /*** オントロジーに関するデータ要求に応えるAPI部分  ***/
 /***** リクエストの分岐処理  *****/
 
-$json_value;
+$json_value = null;
 $display_data_type = "json";
 
 switch($parameter_list['type']) {
@@ -114,7 +114,7 @@ if($display_data_type === 'json') {
     array_map(function($d) {
         $id = $d['id'];
         $label = $d['label'];
-        echo "<a href='./?type=get-concept-from-id&concept-id=${id}'>{$label}</a><br/>";
+        echo "<a href='./?type=get-concept-from-id&concept-id={$id}'>{$label}</a><br/>";
     }, $ontology->getAllConcepts());
     echo "</body></html>";
 } else {
